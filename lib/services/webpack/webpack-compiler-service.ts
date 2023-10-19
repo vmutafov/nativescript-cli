@@ -156,10 +156,18 @@ export class WebpackCompilerService
 						}
 
 						const files = result.emittedFiles.map((file: string) =>
-							path.join(platformData.appDestinationDirectoryPath, "app", file)
+							path.join(
+								platformData.appDestinationDirectoryPath,
+								this.$options.androidHostModule,
+								file
+							)
 						);
 						const fallbackFiles = result.fallbackFiles.map((file: string) =>
-							path.join(platformData.appDestinationDirectoryPath, "app", file)
+							path.join(
+								platformData.appDestinationDirectoryPath,
+								this.$options.androidHostModule,
+								file
+							)
 						);
 
 						const data = {
@@ -343,6 +351,7 @@ export class WebpackCompilerService
 		if (this.$options.androidHost) {
 			options.env = {
 				USER_PROJECT_PLATFORMS_ANDROID: this.$options.androidHost,
+				USER_PROJECT_PLATFORMS_ANDROID_MODULE: this.$options.androidHostModule,
 			};
 		}
 		const childProcess = this.$childProcess.spawn(
@@ -557,10 +566,18 @@ export class WebpackCompilerService
 		this.$logger.trace("Webpack build done!");
 
 		const files = message.data.emittedAssets.map((asset: string) =>
-			path.join(platformData.appDestinationDirectoryPath, "app", asset)
+			path.join(
+				platformData.appDestinationDirectoryPath,
+				this.$options.androidHostModule,
+				asset
+			)
 		);
 		const staleFiles = message.data.staleAssets.map((asset: string) =>
-			path.join(platformData.appDestinationDirectoryPath, "app", asset)
+			path.join(
+				platformData.appDestinationDirectoryPath,
+				this.$options.androidHostModule,
+				asset
+			)
 		);
 
 		// extract last hash from emitted filenames

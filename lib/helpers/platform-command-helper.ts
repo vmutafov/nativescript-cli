@@ -38,6 +38,11 @@ export class PlatformCommandHelper implements IPlatformCommandHelper {
 		projectData: IProjectData,
 		frameworkPath: string
 	): Promise<void> {
+		if (this.$options.androidHost) {
+			this.$logger.info("Ignoring platform add becuase of --android-host flag");
+			return;
+		}
+
 		const platformsDir = projectData.platformsDir;
 		this.$fs.ensureDirectoryExists(platformsDir);
 
@@ -84,6 +89,13 @@ export class PlatformCommandHelper implements IPlatformCommandHelper {
 		platforms: string[],
 		projectData: IProjectData
 	): Promise<void> {
+		if (this.$options.androidHost) {
+			this.$logger.info(
+				"Ignoring platform remove becuase of --android-host flag"
+			);
+			return;
+		}
+
 		for (const platform of platforms) {
 			this.$platformValidationService.validatePlatformInstalled(
 				platform,

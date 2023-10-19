@@ -240,9 +240,8 @@ export class PluginsService implements IPluginsService {
 			projectData
 		);
 
-		const pluginPlatformsFolderPath = pluginData.pluginPlatformsFolderPath(
-			platform
-		);
+		const pluginPlatformsFolderPath =
+			pluginData.pluginPlatformsFolderPath(platform);
 		if (this.$fs.exists(pluginPlatformsFolderPath)) {
 			const pathToPluginsBuildFile = path.join(
 				platformData.projectRoot,
@@ -330,10 +329,9 @@ export class PluginsService implements IPluginsService {
 	public async getAllInstalledPlugins(
 		projectData: IProjectData
 	): Promise<IPluginData[]> {
-		const nodeModules = (
-			await this.getAllInstalledModules(projectData)
-		).map((nodeModuleData) =>
-			this.convertToPluginData(nodeModuleData, projectData.projectDir)
+		const nodeModules = (await this.getAllInstalledModules(projectData)).map(
+			(nodeModuleData) =>
+				this.convertToPluginData(nodeModuleData, projectData.projectDir)
 		);
 		return _.filter(
 			nodeModules,
@@ -565,12 +563,13 @@ export class PluginsService implements IPluginsService {
 								}
 							});
 						} else {
-							const message = this.getFailureMessageForDifferentDependencyVersions(
-								dependencyName,
-								frameworkName,
-								dependencyOccurrencesGroupedByVersion,
-								projectDir
-							);
+							const message =
+								this.getFailureMessageForDifferentDependencyVersions(
+									dependencyName,
+									frameworkName,
+									dependencyOccurrencesGroupedByVersion,
+									projectDir
+								);
 							this.$errors.fail(message);
 						}
 					}
@@ -783,7 +782,7 @@ This framework comes from ${dependencyName} plugin, which is installed multiple 
 				);
 				const pluginDestinationPath = path.join(
 					platformData.appDestinationDirectoryPath,
-					constants.APP_FOLDER_NAME,
+					this.$options.androidHostModule,
 					"tns_modules"
 				);
 				await action(
@@ -845,9 +844,8 @@ This framework comes from ${dependencyName} plugin, which is installed multiple 
 	): Promise<IStringDictionary> {
 		let data: IStringDictionary = {};
 		if (this.$fs.exists(pluginPlatformsDir)) {
-			const pluginNativeDataFiles = this.$fs.enumerateFilesInDirectorySync(
-				pluginPlatformsDir
-			);
+			const pluginNativeDataFiles =
+				this.$fs.enumerateFilesInDirectorySync(pluginPlatformsDir);
 			data = await this.$filesHashService.generateHashes(pluginNativeDataFiles);
 		}
 

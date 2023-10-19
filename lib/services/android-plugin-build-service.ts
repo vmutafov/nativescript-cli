@@ -15,6 +15,7 @@ import {
 	INodePackageManager,
 	IAndroidToolsInfo,
 	IWatchIgnoreListService,
+	IOptions,
 } from "../declarations";
 import { IPlatformsDataService } from "../definitions/platform";
 import { IProjectData, IProjectDataService } from "../definitions/project";
@@ -37,6 +38,7 @@ import { IInjector } from "../common/definitions/yok";
 import { injector } from "../common/yok";
 import * as _ from "lodash";
 import { resolvePackageJSONPath } from "@rigor789/resolve-package-path";
+import { cwd } from "process";
 
 export class AndroidPluginBuildService implements IAndroidPluginBuildService {
 	private get $platformsDataService(): IPlatformsDataService {
@@ -47,6 +49,7 @@ export class AndroidPluginBuildService implements IAndroidPluginBuildService {
 		private $fs: IFileSystem,
 		private $childProcess: IChildProcess,
 		private $hostInfo: IHostInfo,
+		private $options: IOptions,
 		private $androidToolsInfo: IAndroidToolsInfo,
 		private $logger: ILogger,
 		private $packageManager: INodePackageManager,
@@ -147,18 +150,16 @@ export class AndroidPluginBuildService implements IAndroidPluginBuildService {
 	private getIncludeGradleCompileDependenciesScope(
 		includeGradleFileContent: string
 	): Array<string> {
-		const indexOfDependenciesScope = includeGradleFileContent.indexOf(
-			"dependencies"
-		);
+		const indexOfDependenciesScope =
+			includeGradleFileContent.indexOf("dependencies");
 		const result: Array<string> = [];
 
 		if (indexOfDependenciesScope === -1) {
 			return result;
 		}
 
-		const indexOfRepositoriesScope = includeGradleFileContent.indexOf(
-			"repositories"
-		);
+		const indexOfRepositoriesScope =
+			includeGradleFileContent.indexOf("repositories");
 
 		let repositoriesScope = "";
 		if (indexOfRepositoriesScope >= 0) {
@@ -437,9 +438,8 @@ export class AndroidPluginBuildService implements IAndroidPluginBuildService {
 				this.$devicePlatformsConstants.Android,
 				projectData
 			);
-			const projectRuntimeVersion = platformData.platformProjectService.getFrameworkVersion(
-				projectData
-			);
+			const projectRuntimeVersion =
+				platformData.platformProjectService.getFrameworkVersion(projectData);
 			runtimeGradleVersions = await this.getGradleVersions(
 				projectRuntimeVersion
 			);
@@ -527,10 +527,8 @@ export class AndroidPluginBuildService implements IAndroidPluginBuildService {
 		}
 
 		if (installedRuntimePackageJSON.version_info) {
-			const {
-				gradle,
-				gradleAndroid,
-			} = installedRuntimePackageJSON.version_info;
+			const { gradle, gradleAndroid } =
+				installedRuntimePackageJSON.version_info;
 
 			return {
 				gradleVersion: gradle,
@@ -682,9 +680,8 @@ export class AndroidPluginBuildService implements IAndroidPluginBuildService {
 		);
 		if (this.$fs.exists(includeGradlePath)) {
 			const includeGradleContent = this.$fs.readText(includeGradlePath);
-			const compileDependencies = this.getIncludeGradleCompileDependenciesScope(
-				includeGradleContent
-			);
+			const compileDependencies =
+				this.getIncludeGradleCompileDependenciesScope(includeGradleContent);
 
 			if (compileDependencies.length) {
 				this.$fs.appendFile(
@@ -789,11 +786,10 @@ export class AndroidPluginBuildService implements IAndroidPluginBuildService {
 				validateTargetSdk: true,
 				projectDir: pluginBuildSettings.projectDir,
 			});
-			pluginBuildSettings.androidToolsInfo = this.$androidToolsInfo.getToolsInfo(
-				{
+			pluginBuildSettings.androidToolsInfo =
+				this.$androidToolsInfo.getToolsInfo({
 					projectDir: pluginBuildSettings.projectDir,
-				}
-			);
+				});
 		}
 
 		const gradlew =
@@ -810,6 +806,7 @@ export class AndroidPluginBuildService implements IAndroidPluginBuildService {
 			`-PappPath=${this.$projectData.getAppDirectoryPath()}`,
 			`-PappResourcesPath=${this.$projectData.getAppResourcesDirectoryPath()}`,
 		];
+
 		if (pluginBuildSettings.gradleArgs) {
 			localArgs.push(pluginBuildSettings.gradleArgs);
 		}
@@ -818,11 +815,28 @@ export class AndroidPluginBuildService implements IAndroidPluginBuildService {
 			localArgs.push("--quiet");
 		}
 
+		const opts: any = {
+			cwd: pluginBuildSettings.pluginDir,
+			stdio: "inherit",
+		};
+
+		if (this.$options.androidHost) {
+			opts.env = {
+				USER_PROJECT_PLATFORMS_ANDROID: path.resolve(
+					cwd(),
+					this.$options.androidHost
+				), // TODO: couldn't `androidHost` have an absolute path already?
+				...process.env, // TODO: any other way to pass automatically the current process.env?
+			};
+		}
+
 		try {
-			await this.$childProcess.spawnFromEvent(gradlew, localArgs, "close", {
-				cwd: pluginBuildSettings.pluginDir,
-				stdio: "inherit",
-			});
+			await this.$childProcess.spawnFromEvent(
+				gradlew,
+				localArgs,
+				"close",
+				opts
+			);
 		} catch (err) {
 			this.$errors.fail(
 				`Failed to build plugin ${pluginBuildSettings.pluginName} : \n${err}`

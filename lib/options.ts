@@ -10,6 +10,7 @@ import {
 	ISettingsService,
 } from "./common/declarations";
 import { injector } from "./common/yok";
+import { APP_FOLDER_NAME } from "./constants";
 export class Options {
 	private static DASHED_OPTION_REGEX = /(.+?)([A-Z])(.*)/;
 	private static NONDASHED_OPTION_REGEX = /(.+?)[-]([a-zA-Z])(.*)/;
@@ -222,6 +223,11 @@ export class Options {
 			gradlePath: { type: OptionType.String, hasSensitiveValue: false },
 			gradleArgs: { type: OptionType.String, hasSensitiveValue: false },
 			androidHost: { type: OptionType.String, hasSensitiveValue: false },
+			androidHostModule: {
+				type: OptionType.String,
+				hasSensitiveValue: false,
+				default: APP_FOLDER_NAME,
+			},
 			aab: { type: OptionType.Boolean, hasSensitiveValue: false },
 			performance: { type: OptionType.Object, hasSensitiveValue: true },
 			appleApplicationSpecificPassword: {
